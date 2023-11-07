@@ -1,0 +1,19 @@
+{
+  "name": "@easegram/sample",
+  "version": "0.0.1",
+  "description": "A sample for easegram-framework.",
+  "main": "dist/app.js",
+  "scripts": {
+    "build": "rimraf ./dist && tsc -p ./tsconfig.json",
+    "start": "npm run build && node --experimental-specifier-resolution=node dist/app.js"
+  },
+  "dependencies": {
+    "@easegram/framework": "^0.0.7"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.5",
+    "typescript": "^5.2.2"
+  },
+  "author": "",
+  "license": "ISC"
+}
