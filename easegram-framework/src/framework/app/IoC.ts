@@ -1,18 +1,17 @@
 
 import "reflect-metadata";
-import fs from "fs";
-import {Constructor} from "./Class";
+import {Class, Constructor} from "./Class";
 
 /**
- * 标注一个 ModuleClass，指定它在 IoC 容器中的 id 和 参数。
- * @ModuleClass("moduleName", ...args)
+ * 标注一个模块实例，指定它在 IoC 容器中的 id 和 参数。
+ * @ModuleInst("moduleName", ...args)
  * */
 
-const MODULE_INST_ANNOTATION: string = 'metadata:class';
+const $_ModuleInst: string = '@ModuleInst';
 export function ModuleInst(id?: string, ...args: Array<any>) : ClassDecorator {
     return target => {
         const metadata = {id: id || target.name, args: args || []};
-        Reflect.defineMetadata(MODULE_INST_ANNOTATION, metadata, target);
+        Reflect.defineMetadata($_ModuleInst, metadata, target);
         return target;
     };
 }
@@ -20,7 +19,7 @@ export function ModuleInst(id?: string, ...args: Array<any>) : ClassDecorator {
 /**
  *
  * */
-const INJECT_FIELD_ANNOTATION: string = 'metadata:field';
+const $_ModuleField: string = '@ModuleFields';
 export function ModuleField<T>(idOrType?: string | Constructor<T>) {
     return function (target: any, targetKey: string) {
 
@@ -32,13 +31,13 @@ export function ModuleField<T>(idOrType?: string | Constructor<T>) {
         const targetClazz = target.constructor;
 
         let fields = {};
-        if (Reflect.hasOwnMetadata(INJECT_FIELD_ANNOTATION, targetClazz)) {
-            fields = Reflect.getMetadata(INJECT_FIELD_ANNOTATION, targetClazz);
+        if (Reflect.hasOwnMetadata($_ModuleField, targetClazz)) {
+            fields = Reflect.getMetadata($_ModuleField, targetClazz);
         }
 
         fields[targetKey] = { id };
 
-        Reflect.defineMetadata(INJECT_FIELD_ANNOTATION, fields, targetClazz);
+        Reflect.defineMetadata($_ModuleField, fields, targetClazz);
     };
 }
 
@@ -46,26 +45,15 @@ export class IoC {
     metamap: Map<string, any> = new Map<string, any>();
     objects: Map<string, any> = new Map<string, any>();
 
+    /**
+     * Load @ModuleInst metadata from the directory indicated by home.
+     * */
     public async load(home: string) {
-        const fileList = fs.readdirSync(home);
-        console.log(fileList)
-        for (const file of fileList) {
-            if (!(/\.js$/.test(file))) {
-                continue;
-            }
-            if(file === 'app.js') {
-                continue;
-            }
-
-            const exports = await import(`${home}${file}`);
-            for (const key in exports) {
-                const module = exports[key];
-                if (typeof module === 'function') {
-                    const metadata = Reflect.getMetadata(MODULE_INST_ANNOTATION, module);
-                    if (metadata) {
-                        this.install(metadata.id || module.name, module, metadata.args);
-                    }
-                }
+        const classList = await Class.scan(home);
+        for(const clazz of classList) {
+            const metadata = Reflect.getMetadata($_ModuleInst, clazz);
+            if (metadata) {
+                this.install(metadata.id || clazz.name, clazz, metadata.args);
             }
         }
     }
@@ -94,7 +82,7 @@ export class IoC {
         const { clazz, args } = metadata;
         const inst = Reflect.construct(clazz, args);
 
-        const fields = Reflect.getMetadata(INJECT_FIELD_ANNOTATION, clazz);
+        const fields = Reflect.getMetadata($_ModuleField, clazz);
         for (let f in fields) {
             // 递归注入 inst 的属性
             console.log(`IoC: inject field '${id}.${f}'.`)

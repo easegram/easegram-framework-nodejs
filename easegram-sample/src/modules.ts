@@ -1,4 +1,4 @@
-import { Module, ModuleInst, ModuleField } from "@easegram/framework";
+import {Module, ModuleInst, ModuleField} from "@easegram/framework";
 
 @ModuleInst()
 export class A extends Module {
@@ -14,4 +14,9 @@ export class B extends Module {
     async ready() {
         console.log(this.a);
     }
+}
+
+@ModuleInst()
+export class Hello extends Module {
+
 }

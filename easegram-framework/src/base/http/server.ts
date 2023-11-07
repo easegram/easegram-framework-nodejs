@@ -12,7 +12,7 @@ import koaBody from '../body';
 import uaParser from 'ua-parser-js';
 
 import { error } from '../common';
-import * as cop from '../cop';
+import * as cop from './packet';
 import * as util from '../util';
 
 /**

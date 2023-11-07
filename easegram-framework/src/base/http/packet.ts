@@ -1,7 +1,7 @@
 /**
  * 通用操作结果封包。此结构用于对操作结果数据传输和交换的封装。
 */
-export interface CommonOperationPacket {
+export interface HttpResponsePacket {
     /**
      * 操作结果，ok表示无错误，否则是错误名称。
     */
@@ -20,7 +20,7 @@ export interface CommonOperationPacket {
  * makeCOP(null, ret);
  * ```
 */
-export const make = function (arg0: any, arg1?: any): CommonOperationPacket {
+export const make = function (arg0: any, arg1?: any): HttpResponsePacket {
     if (arg0 === undefined && arg1 === undefined) {
         let packet: any = {};
         packet.result = 'ERR_INVALID_COPDATA';

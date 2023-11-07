@@ -29,6 +29,17 @@ export class Application {
             await this._ioc.load(`${process.cwd()}/${p}`);
         }
 
+        const poll = ()=>{
+            if(!this._running) {
+                return;
+            }
+
+            // do something.
+
+            process.nextTick(poll);
+        }
+        process.nextTick(poll);
+
         console.log(`app '${this.name}' quit.`);
     }
 
@@ -42,6 +53,10 @@ export class Application {
     
     public set running(value: boolean) {
         this._running = value;
+    }
+
+    public install(id: string, clazz: any, args: Array<any>) {
+        this._ioc.install(id, clazz, args);
     }
 
     public get<T>(idOrType: string | Constructor<T>): T {

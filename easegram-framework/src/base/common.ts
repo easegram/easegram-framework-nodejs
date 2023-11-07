@@ -1,7 +1,7 @@
 
 /**
  * 构造一个新的错误对象，一般调用方式形如：throw error('ERR_NAME', 'message');
- * @param {name} 错误名称，推荐使用形如‘ERR_INVALID_ARGS’的命名规则，具体业务不做强制要求。
+ * @param {string} name 错误名称，推荐使用形如‘ERR_INVALID_ARGS’的命名规则，具体业务不做强制要求。
  * @param {string} message 错误信息
  * @returns {Error} 构建的错误对象
 */
