@@ -18,3 +18,6 @@ export * as authes from './authes';
 export * as html from './html';
 
 export * as util from './util';
+
+export * from './class'
+export * from './ioc'

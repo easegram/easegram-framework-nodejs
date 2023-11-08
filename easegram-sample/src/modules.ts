@@ -1,22 +1,12 @@
-import {Module, ModuleInst, ModuleField} from "@easegram/framework";
+import { IocDefine, IocInject } from "@easegram/framework";
 
-@ModuleInst()
-export class A extends Module {
+@IocDefine()
+export class A {
 
 }
 
-@ModuleInst()
-export class B extends Module {
-
-    @ModuleField(A)
-    private a: A;
-
-    async ready() {
-        console.log(this.a);
-    }
-}
-
-@ModuleInst()
-export class Hello extends Module {
-
+@IocDefine()
+export class Hello {
+    @IocInject()
+    a: A;
 }

@@ -8,7 +8,7 @@
     "start": "npm run build && node --experimental-specifier-resolution=node dist/app.js"
   },
   "dependencies": {
-    "@easegram/framework": "^0.0.8"
+    "@easegram/framework": "^0.0.19"
   },
   "devDependencies": {
     "rimraf": "^5.0.5",

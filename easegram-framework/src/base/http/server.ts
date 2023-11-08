@@ -12,7 +12,7 @@ import koaBody from '../body';
 import uaParser from 'ua-parser-js';
 
 import { error } from '../common';
-import * as cop from './packet';
+import * as packet from './packet';
 import * as util from '../util';
 
 /**
@@ -220,18 +220,19 @@ export const webapp = function (args: WebAppArgs): WebApp {
                 await next();
             }
             catch (err) {
-                ctx.body = cop.make(err, null);
+                ctx.body = packet.make(err, null);
                 ctx.app.emit('error', err, ctx);
             }
         });
 
         if (args.ping) {
             router.post('/_ping', async function (ctx, next) {
-                ctx.response.body = cop.make(true);
+                ctx.response.body = packet.make(true);
             });
         }
 
         func(router);
+
         app.use(router.routes()).use(router.allowedMethods());
     };
 
@@ -265,7 +266,7 @@ export const body = function (options: object): WebMiddleWare {
  * 发送http响应
 */
 export const send = function (ctx: any, arg1: any, arg2?: any) {
-    let message = cop.make(arg1, arg2);
+    let message = packet.make(arg1, arg2);
     //console.log(`http: send ${JSON.stringify(message)}`);
     ctx.response.body = message;
 };
