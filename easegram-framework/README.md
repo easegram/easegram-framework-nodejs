@@ -79,25 +79,29 @@ export class B {
     }
 }
 ```
-* Http Service
-
+### Http Service
 ```typescript
 import {AppEvents, Application, IocDefine} from "@easegram/framework"
 import {HttpService, HttpServiceOptions, HttpGet} from "@easegram/framework";
 
-// hello
+/**
+ * Define a http route handler class
+ * */
 @IocDefine
 class Hello {
-    
-    @HttpGet('/hello') // koa.router.get('/hello', http.handler(hello))
+
+    // Define a route handler
+    // It is equivalent to: koa.router.get('/hello', http.handler(hello))
+    @HttpGet('/hello')
     async hello({name}) {
         return `hello ${name}`
     }
     
 }
 
-// in main function
+// In main function
 app.events.on(AppEvents.Ready, () => {
+    // Install HttpService with args
     app.install('http', HttpService, {
         args: {
             name: 'http',
@@ -110,6 +114,7 @@ app.events.on(AppEvents.Ready, () => {
         routes: [Hello]
     });
 
+    // Construct and Get HttpService instance
     app.get<HttpService>('http');
 })
 ```
