@@ -1,55 +1,107 @@
 # @easegram/framework
 
-## For Users
+## Get Start
 ### Install
 ```shell
 npm install @easegram/framework --save
 ```
-### A simple app
+### Setup App
+
 ```typescript
-import { Application } from "@easegram/framework"
+import {AppEvents, Application} from "@easegram/framework"
 
-const main = async()=> {
+const main = async () => {
     const app = new Application({
-        name:"test-app",
+        name: "test-app",
         modulePaths: ["dist/"]
-    });
+    })
 
-    await app.run();
+    app.events.on(AppEvents.Init, ()=>{
+        console.log(`app init.`)
+    })
+    
+    app.events.on(AppEvents.Ready, ()=>{
+        console.log(`app ready.`)
+    })
+    
+    app.events.on(AppEvents.Quit, ()=>{
+        console.log(`app quit.`)
+    })
+    
+    app.events.on(AppEvents.Tick, (delta: number)=>{
+        console.log(`app running: ${app.time}`)
+    })
 
-    // Do something
-    // ...
+    await app.run()
 }
 
 main();
 ```
 ### Modules
-* A simple module
+* Define a IoC object
 ```typescript
-import { Module, ModuleInst } from "@easegram/framework";
+import { IocDefine } from "@easegram/framework";
 
-@ModuleInst()
-export class A extends Module {
+@IocDefine()
+export class A {
 }
 ```
-* A module contains injected fields.
+* IoC object and field injections.
 ```typescript
-import { Module, ModuleInst, ModuleField } from "@easegram/framework";
+import { IocDefine, IocInject } from "@easegram/framework";
 
-@ModuleInst()
-export class A extends Module {
+
+@IocDefine() // Define a object named 'A'.
+@IocDefine('Instance-A') // Define a object named 'Instance-A'.
+export class A {
 
 }
 
-@ModuleInst()
-export class B extends Module {
-    @ModuleField(A)
+@IocDefine() // Define a object named 'B'.
+export class B {
+    @IocInject() // Inject value with the object 'A'.
     private a: A;
+    
+    @IocInject('Instance-A') // Inject value with the object 'Instance-A'.
+    private instanceA: A;
 
-    async ready() {
+    start() {
         console.log(this.a);
+        console.log(this.instanceA);
     }
 }
+```
+* Http Service
+
+```typescript
+import {AppEvents, Application, IocDefine} from "@easegram/framework"
+import {HttpService, HttpServiceOptions, HttpGet} from "@easegram/framework";
+
+// hello
+@IocDefine
+class Hello {
+    @HttpGet('/hello')
+    async hello({name}) {
+        return `hello ${name}`
+    }
+}
+
+// in main function
+app.events.on(AppEvents.Ready, () => {
+    app.install('http', HttpService, {
+        args: {
+            name: 'http',
+            host: '0.0.0.0',
+            port: 80,
+            log: true,
+            cors: true,
+            proxy: false
+        },
+        routes: [Hello]
+    });
+
+    app.get<HttpService>('http');
+})
 ```
 
 ## For Developers
