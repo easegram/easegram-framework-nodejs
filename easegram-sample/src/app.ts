@@ -22,8 +22,10 @@ const main = async()=> {
                 cors: true,
                 proxy: false
             },
-            routes: {Hello}
+            routes: [Hello]
         });
+
+        app.get<HttpService>('http');
 
         const a = app.get(A);
         console.log(a);
@@ -31,10 +33,12 @@ const main = async()=> {
         console.log(hello);
     });
 
+    let accumulance = 0;
     app.events.on(AppEvents.Tick, (delta)=>{
-        console.log(`app running: ${delta}`);
-        if(app.time >= 10) {
-            app.running = false;
+        accumulance += delta;
+        if(accumulance >= 60.0) {
+            console.log(`app running: ${app.time}`);
+            accumulance = 0;
         }
     })
 

@@ -5,7 +5,7 @@ import fs from 'fs';
 import path from 'path';
 
 import koa from 'koa';
-import koaRouter from 'koa-router';
+import KoaRouter from 'koa-router';
 import koaCors from 'koa2-cors';
 import koaStaticRouter from 'koa-static-router';
 import koaBody from '../body';
@@ -107,7 +107,7 @@ export class WebApp extends koa {
     /**
      * 路由注册。
      */
-    public route: (func: (router: koaRouter) => void) => void;
+    public route: (func: (router: KoaRouter) => void) => void;
 
     /**
      * 启动服务
@@ -212,8 +212,8 @@ export const webapp = function (args: WebAppArgs): WebApp {
         app.use(koaStaticRouter(args))
     };
 
-    app.route = function (func: (router: koaRouter) => void): void {
-        let router = new koaRouter();
+    app.route = function (func: (router: KoaRouter) => void): void {
+        const router = new KoaRouter();
 
         router.use(async (ctx, next) => {
             try {

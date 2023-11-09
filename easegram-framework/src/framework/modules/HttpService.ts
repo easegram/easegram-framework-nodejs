@@ -4,17 +4,16 @@ import { http, Constructor, IocDefine } from "../../base"
 const $_HTTP = "@HTTP";
 
 export const HttpRoute = function(method: string, path: string): MethodDecorator {
-    return (target, propertyKey, descriptor) => {
-        const targetClazz = target.constructor;
+    return (target, key, descriptor) => {
+        const targetOwnerClazz = target.constructor;
 
         let mappings = {};
-        if (Reflect.hasOwnMetadata($_HTTP, targetClazz)) {
-            mappings = Reflect.getMetadata($_HTTP, targetClazz);
+        if (Reflect.hasOwnMetadata($_HTTP, targetOwnerClazz)) {
+            mappings = Reflect.getMetadata($_HTTP, targetOwnerClazz);
         }
 
-        mappings[path] = { method, path, handler: target };
-
-        Reflect.defineMetadata($_HTTP, mappings, targetClazz);
+        mappings[path] = { method, path, handler: target[key] };
+        Reflect.defineMetadata($_HTTP, mappings, targetOwnerClazz);
     };
 };
 
@@ -28,7 +27,7 @@ export const HttpPost = function(path: string): MethodDecorator {
 
 export interface HttpServiceOptions {
     args: http.WebAppArgs;
-    routes: Array<Constructor<Object>>;
+    routes: Constructor<Object>[];
 }
 
 @IocDefine()
@@ -41,22 +40,24 @@ export class HttpService {
         const app = http.webapp(options.args);
 
         const routes = options.routes;
-        if(routes && routes.length > 0) {
-            app.route(router => {
-                for (const handler of routes) {
-                    const mappings = Reflect.getMetadata($_HTTP, handler);
 
-                    for (const path in mappings) {
-                        const mapping = mappings[path];
-                        if (!mapping) {
-                            continue;
-                        }
-                        const {method, handler} = mapping;
-                        router[method](path, http.handler(handler));
+        app.route(router => {
+            if(!routes || !routes.length) {
+                return;
+            }
+            for(const clazz of routes) {
+                const mappings = Reflect.getMetadata($_HTTP, clazz);
+                for (const path in mappings) {
+                    const mapping = mappings[path];
+                    if (!mapping) {
+                        continue;
                     }
+                    const {method, handler} = mapping;
+                    router[method](path, http.handler(handler));
+                    console.log(`setup http route: ${method}=>${path}`);
                 }
-            });
-        }
+            }
+        });
 
         app.start();
     }

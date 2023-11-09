@@ -48,8 +48,11 @@ export class Application {
         this.events.emit(AppEvents.Ready);
         await new Promise<void>((resolve, reject)=>{
             let last = Date.now();
-            const poll = ()=>{
+
+            setInterval(()=>{
                 if(!this.running) {
+                    this.events.emit(AppEvents.Quit);
+                    console.log(`app '${this.name}' quit.`);
                     return resolve();
                 }
 
@@ -61,14 +64,8 @@ export class Application {
                     this.events.emit(AppEvents.Tick, delta);
                 }
 
-                process.nextTick(poll);
-            }
-
-            process.nextTick(poll);
+            }, this.elapse * 1000);
         });
-
-        this.events.emit(AppEvents.Quit);
-        console.log(`app '${this.name}' quit.`);
     }
 
     public get name(): string {
