@@ -37,13 +37,21 @@ const main = async () => {
 
 main();
 ```
-### Modules
+### IoC
 * Define a IoC object
 ```typescript
 import { IocDefine } from "@easegram/framework";
 
-@IocDefine()
+@IocDefine() // Define a object named 'A'.
+@IocDefine('Instance-A') // Define a object named 'Instance-A'.
 export class A {
+    
+}
+
+//...
+{
+    const a = app.container.get('A')
+    const instance = app.container.ge('Instance-A');
 }
 ```
 * IoC object and field injections.
@@ -80,10 +88,12 @@ import {HttpService, HttpServiceOptions, HttpGet} from "@easegram/framework";
 // hello
 @IocDefine
 class Hello {
-    @HttpGet('/hello')
+    
+    @HttpGet('/hello') // koa.router.get('/hello', http.handler(hello))
     async hello({name}) {
         return `hello ${name}`
     }
+    
 }
 
 // in main function
