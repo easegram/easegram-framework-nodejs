@@ -38,13 +38,15 @@ export class Application {
     public async run(): Promise<void> {
         const options = this.options;
 
-        console.log(`app '${options.name}' init...`);
+        console.log(`App: '${options.name}' init...`);
         this.events.emit(AppEvents.Init);
 
         for(const p of options.modulePaths) {
+            console.log(`App: Load modules from '${p}'`);
             await this.container.load(`${process.cwd()}/${p}`);
         }
 
+        console.log(`App: '${options.name}' ready...`);
         this.events.emit(AppEvents.Ready);
         await new Promise<void>((resolve, reject)=>{
             let last = Date.now();
@@ -52,7 +54,7 @@ export class Application {
             setInterval(()=>{
                 if(!this.running) {
                     this.events.emit(AppEvents.Quit);
-                    console.log(`app '${this.name}' quit.`);
+                    console.log(`app '${options.name}' quit...`);
                     return resolve();
                 }
 
@@ -76,8 +78,8 @@ export class Application {
         return this._time;
     }
 
-    public install<T>(id: string, clazz: Constructor<T>, ...args: Array<any>) {
-        this.container.install(id, clazz, args);
+    public define<T>(id: string, clazz: Constructor<T>, ...args: Array<any>) {
+        this.container.define(id, clazz, args);
     }
 
     public get<T>(idOrType: string | Constructor<T>): T {

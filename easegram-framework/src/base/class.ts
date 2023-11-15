@@ -9,7 +9,6 @@ export interface Class {
 export namespace Class {
     export const scan = async(home: string) : Promise<Array<Constructor>> => {
         const fileList = fs.readdirSync(home);
-        console.log(fileList)
 
         const classList: Array<Constructor> = [];
         for (const file of fileList) {

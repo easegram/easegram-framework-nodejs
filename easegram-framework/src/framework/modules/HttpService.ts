@@ -1,4 +1,4 @@
-import { http, Constructor, IocDefine } from "../../base"
+import {http, Constructor, IoC, IocDefine, IocInject} from "../../base"
 
 
 const $_HTTP = "@HTTP";
@@ -12,8 +12,10 @@ export const HttpRoute = function(method: string, path: string): MethodDecorator
             mappings = Reflect.getMetadata($_HTTP, targetOwnerClazz);
         }
 
-        mappings[path] = { method, path, handler: target[key] };
+        mappings[path] = { method, path, handler: key };
         Reflect.defineMetadata($_HTTP, mappings, targetOwnerClazz);
+
+        return descriptor;
     };
 };
 
@@ -34,13 +36,20 @@ export interface HttpServiceOptions {
 export class HttpService {
     readonly options: HttpServiceOptions;
 
+    @IocInject()
+    private container: IoC.Container;
+
     constructor(options: HttpServiceOptions) {
         this.options = options;
+    }
+
+    start() {
+        const container = this.container;
+        const options = this.options;
 
         const app = http.webapp(options.args);
 
         const routes = options.routes;
-
         app.route(router => {
             if(!routes || !routes.length) {
                 return;
@@ -53,8 +62,9 @@ export class HttpService {
                         continue;
                     }
                     const {method, handler} = mapping;
-                    router[method](path, http.handler(handler));
-                    console.log(`setup http route: ${method}=>${path}`);
+                    const target = container.get(clazz);
+                    router[method](path, http.handler(target[handler].bind(target)));
+                    console.log(`http service '${options.args.name}' setup route [${method.toUpperCase()}] ${path}`);
                 }
             }
         });

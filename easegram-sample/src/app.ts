@@ -1,6 +1,6 @@
 
 import {AppEvents, Application, HttpService} from "@easegram/framework"
-import {A, Hello} from "./modules";
+import {Hello} from "./modules";
 
 const main = async()=> {
     console.log("startup")
@@ -13,7 +13,7 @@ const main = async()=> {
     });
 
     app.events.on(AppEvents.Ready, ()=>{
-        app.install('http', HttpService, {
+        app.define('http', HttpService, {
             args: {
                 name: 'http',
                 host: '0.0.0.0',
@@ -25,12 +25,8 @@ const main = async()=> {
             routes: [Hello]
         });
 
-        app.get<HttpService>('http');
-
-        const a = app.get(A);
-        console.log(a);
-        const hello = app.get(Hello);
-        console.log(hello);
+        const http = app.get<HttpService>('http');
+        http.start();
     });
 
     let accumulance = 0;
