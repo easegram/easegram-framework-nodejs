@@ -1,6 +1,5 @@
 import {http, Constructor, IoC, IocDefine, IocInject} from "../../base"
 
-
 const $_HTTP = "@HTTP";
 
 export const HttpRoute = function(method: string, path: string): MethodDecorator {
@@ -27,30 +26,17 @@ export const HttpPost = function(path: string): MethodDecorator {
     return HttpRoute('post', path);
 };
 
-export interface HttpServiceOptions {
-    args: http.WebAppArgs;
-    routes: Constructor<Object>[];
-}
-
 @IocDefine()
 export class HttpService {
-    readonly options: HttpServiceOptions;
-
     @IocInject()
     private container: IoC.Container;
 
-    constructor(options: HttpServiceOptions) {
-        this.options = options;
-    }
-
-    start() {
+    start(args: http.WebAppArgs, routes: Constructor[]) {
         const container = this.container;
-        const options = this.options;
 
-        const app = http.webapp(options.args);
+        const app = http.webapp(args);
 
-        const routes = options.routes;
-        app.route(router => {
+        app.route(async router => {
             if(!routes || !routes.length) {
                 return;
             }
@@ -62,9 +48,9 @@ export class HttpService {
                         continue;
                     }
                     const {method, handler} = mapping;
-                    const target = container.get(clazz);
+                    const target = await container.get(clazz);
                     router[method](path, http.handler(target[handler].bind(target)));
-                    console.log(`http service '${options.args.name}' setup route [${method.toUpperCase()}] ${path}`);
+                    console.log(`http service '${args.name}' setup route [${method.toUpperCase()}] ${path}`);
                 }
             }
         });

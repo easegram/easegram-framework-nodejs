@@ -1,3 +1,4 @@
 
-export * from "./app/Application"
-export * from "./modules/HttpService";
+export * from "./app"
+export * from "./config"
+export * from "./modules/http-service";

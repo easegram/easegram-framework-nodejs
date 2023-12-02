@@ -72,7 +72,7 @@ export namespace IoC {
             this.events.emit(Events.Install, id, clazz, args);
         }
 
-        public get<T>(idOrType: string | Constructor<T>) : T {
+        public async get<T>(idOrType: string | Constructor<T>) : Promise<T> {
             if(!idOrType) {
                 console.error(`IoC: Invalid object id.`);
                 return null;
@@ -103,7 +103,11 @@ export namespace IoC {
             for (let f in fields) {
                 // 递归注入 inst 的属性
                 console.log(`IoC: Inject field '${id}.${f}'.`)
-                inst[f] = this.get(fields[f].id);
+                inst[f] = await this.get(fields[f].id);
+            }
+
+            if((inst as any).init && typeof((inst as any).init) === 'function') {
+                await (inst as any).init();
             }
 
             this.events.emit(Events.Construct, id, inst)

@@ -1,32 +1,25 @@
 
-import {AppEvents, Application, HttpService} from "@easegram/framework"
-import {Hello} from "./modules";
+import {App, AppEvents} from "@easegram/framework"
+import {Serv} from "./serv";
 
 const main = async()=> {
     console.log("startup")
 
-    const app = new Application({
+    const app = new App({
         name:"test-app",
-        modulePaths: [
-            `dist/`,
+        features: {
+            config: true,
+            http: true,
+        },
+        paths: [
+            `dist/serv/`,
         ]
     });
 
-    app.events.on(AppEvents.Ready, ()=>{
-        app.define('http', HttpService, {
-            args: {
-                name: 'http',
-                host: '0.0.0.0',
-                port: 80,
-                log: true,
-                cors: true,
-                proxy: false
-            },
-            routes: [Hello]
-        });
-
-        const http = app.get<HttpService>('http');
-        http.start();
+    app.events.on(AppEvents.Ready, async()=> {
+        console.log(`App ready.`);
+        const serv = await app.get(Serv);
+        serv.start();
     });
 
     let accumulance = 0;
