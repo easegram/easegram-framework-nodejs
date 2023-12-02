@@ -1,0 +1,20 @@
+{
+  "name": "easegram-sample",
+  "data": {
+    "mysql": {
+
+    }
+  },
+  "logic": {
+
+  },
+  "http": {
+    "name": "http",
+    "host": "0.0.0.0",
+    "port": 80,
+    "log": true,
+    "cors": true,
+    "ping": true,
+    "proxy": true
+  }
+}
