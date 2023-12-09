@@ -97,8 +97,14 @@ export namespace IoC {
             console.log(`IoC: Construct object '${id}'.`)
             const { clazz, args } = metadata;
             const inst = Reflect.construct(clazz, args);
-            this.objects.set(id, inst)
+            this.objects.set(id, inst);
 
+            // init
+            if((inst as any).init && typeof((inst as any).init) === 'function') {
+                await (inst as any).init();
+            }
+
+            // inject properties
             const fields = Reflect.getMetadata($_IocInject, clazz);
             for (let f in fields) {
                 // 递归注入 inst 的属性
@@ -106,8 +112,9 @@ export namespace IoC {
                 inst[f] = await this.get(fields[f].id);
             }
 
-            if((inst as any).init && typeof((inst as any).init) === 'function') {
-                await (inst as any).init();
+            // ready
+            if((inst as any).ready && typeof((inst as any).ready) === 'function') {
+                await (inst as any).ready();
             }
 
             this.events.emit(Events.Construct, id, inst)
