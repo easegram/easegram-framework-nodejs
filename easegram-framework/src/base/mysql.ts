@@ -2,31 +2,31 @@ import mysql from "mysql";
 
 /**
  * mysql选项
-*/
+ */
 export type MySqlOptions = {
     /**
      * mysql主机，IP或域名。
-    */
+     */
     host: string;
     /**
      * 端口号，默认3306.
-    */
+     */
     port: number;
     /**
      * 数据库服务的用户名
-    */
+     */
     user: string;
     /**
      * 数据库服务的用户密码
-    */
+     */
     password: string;
     /**
      * 选择的数据库名称
-    */
+     */
     database: string;
     /**
      * 字符集
-    */
+     */
     charset?: string;
 };
 
@@ -45,7 +45,7 @@ export class Connection {
      * @param {string} sql SQL语句
      * @param {boolean} logsql 是否打印SQL语句
      * @returns {any} 查询结果集
-    */
+     */
     public async query(sql: string, logsql: boolean = true): Promise<any> {
         if (logsql) {
             console.log(`db: ${sql}`);
@@ -69,7 +69,7 @@ export class Connection {
      * @param {number} page 当前页码，从1开始。
      * @param {number} size 每页的数据条数
      * @returns {any} 查询结果集
-    */
+     */
     public async page(sql: string, page: number, size: number): Promise<any> {
         let has_limit =
             sql.indexOf('limit') >= 0 ||
@@ -109,7 +109,7 @@ export class Connection {
 
     /**
      * 开启事务
-    */
+     */
     public async transaction(): Promise<void> {
         await new Promise<void>((resolve, reject) => {
             this.conn.beginTransaction((err) => {
@@ -123,7 +123,7 @@ export class Connection {
 
     /**
      * 提交事务
-    */
+     */
     public async commit(): Promise<void> {
         await new Promise<void>((resolve, reject) => {
             this.conn.commit((err) => {
@@ -137,7 +137,7 @@ export class Connection {
 
     /**
      * 回滚事务
-    */
+     */
     public async rollback(): Promise<void> {
         await new Promise<void>((resolve, reject) => {
             this.conn.rollback((err) => {
@@ -151,7 +151,7 @@ export class Connection {
 
     /**
      * 释放连接
-    */
+     */
     public release() {
         this.conn.release();
         this.conn = null;
@@ -160,13 +160,13 @@ export class Connection {
 
 /**
  * mysql数据库访问对象
-*/
+ */
 export class MySql {
     private pool: any = null;
 
     /**
      * 构造器
-    */
+     */
     public async init(options: MySqlOptions) {
         (options as any) = options || {};
 
@@ -184,31 +184,25 @@ export class MySql {
      * 连接数据库
      * @param {boolean} transaction 开启事务
      * @returns {Connection} 数据库连接对象
-    */
-    public async connect(transaction: boolean = false): Promise<Connection> {
+     */
+    public async connect(): Promise<Connection> {
         return await new Promise((resolve, reject) => {
             this.pool.getConnection((err, conn) => {
                 if (err) {
                     return reject(err);
                 }
-                if (!transaction) {
-                    return resolve(new Connection(conn));
-                }
-                conn.beginTransaction((err) => {
-                    if (err) {
-                        return reject(err);
-                    }
-                    return resolve(new Connection(conn));
-                });
+                return resolve(new Connection(conn));
             });
         });
     }
 
     /**
      * 连接数据库并开启事务。
-    */
+     */
     public async transaction(): Promise<Connection> {
-        return await this.connect(true);
+        const conn = await this.connect();
+        await conn.transaction();
+        return conn;
     }
 
     /**
@@ -216,7 +210,7 @@ export class MySql {
      * @param {string} sql SQL语句
      * @param {boolean} logsql 是否打印SQL语句
      * @returns {any} 查询结果集
-    */
+     */
     public async query(sql: string, logsql: boolean = true): Promise<any> {
         let conn = await this.connect();
         let ret = await conn.query(sql, logsql);
@@ -230,7 +224,7 @@ export class MySql {
      * @param {number} page 当前页码，从1开始。
      * @param {number} size 每页的数据条数
      * @returns {any} 查询结果集
-    */
+     */
     public async page(sql: string, page: number, size: number): Promise<any> {
         let conn = await this.connect();
         let ret = await conn.page(sql, page, size);
@@ -239,29 +233,29 @@ export class MySql {
     }
 }
 
-const db = new MySql();
+export const instance = new MySql();
 
 /**
  * 初始化全局MySql对象
-*/
+ */
 export const init = async function (options: MySqlOptions) {
-    return await db.init(options);
+    return await instance.init(options);
 }
 
 /**
-  * 连接数据库
-  * @param {boolean} transaction 开启事务
-  * @returns {Connection} 数据库连接对象
+ * 连接数据库
+ * @param {boolean} transaction 开启事务
+ * @returns {Connection} 数据库连接对象
  */
-export const connect = async function (transaction: boolean = false): Promise<Connection> {
-    return await db.connect(transaction);
+export const connect = async function (): Promise<Connection> {
+    return await instance.connect();
 }
 
 /**
  * 连接数据库并开启事务。
-*/
+ */
 export const transaction = async function (): Promise<Connection> {
-    return await db.connect(true);
+    return await instance.transaction();
 }
 
 /**
@@ -269,9 +263,9 @@ export const transaction = async function (): Promise<Connection> {
  * @param {string} sql SQL语句
  * @param {boolean} logsql 是否打印SQL语句
  * @returns {any} 查询结果集
-*/
+ */
 export const query = async function (sql: string, logsql: boolean = true): Promise<any> {
-    return await db.query(sql, logsql);
+    return await instance.query(sql, logsql);
 }
 
 /**
@@ -280,7 +274,7 @@ export const query = async function (sql: string, logsql: boolean = true): Promi
  * @param {number} page 当前页码，从1开始。
  * @param {number} size 每页的数据条数
  * @returns {any} 查询结果集
-*/
+ */
 export const page = async function (sql: string, page: number, size: number): Promise<any> {
-    return await db.page(sql, page, size);
+    return await instance.page(sql, page, size);
 }
