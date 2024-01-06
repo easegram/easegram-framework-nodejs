@@ -1,4 +1,4 @@
-import {http, Constructor, IoC, IocDefine, IocInject} from "../../base"
+import {http, Constructor, IoC, IocDefine, IocInject} from "../../base";
 
 const $_HTTP = "@HTTP";
 
@@ -31,36 +31,32 @@ export class HttpService {
     @IocInject()
     private container: IoC.Container;
 
-    private routeFuncList: Array<(router)=>void> = [];
-    private routeClazzList: Array<Constructor> = [];
+    private args: http.WebAppArgs;
+    private app: http.WebApp;
 
-    public setRouteFunc(func: (router)=>void) {
-        this.routeFuncList.push(func);
+    create(args: http.WebAppArgs) : void {
+        this.args = args;
+        this.app = http.webapp(args);
     }
 
-    public setRouteClazz(...clazzList: Constructor[]) {
-        if(clazzList && clazzList.length > 0) {
-            for(const c of clazzList) {
-                this.routeClazzList.push(c);
-            }
+    use(midware: http.WebMiddleWare): void {
+        this.app.use(midware);
+    }
+
+    routesWithFunc(func: (router)=>void): void {
+        this.app.route(func);
+    }
+
+    routesWithClazz(...clazzList: Constructor[]): void {
+        if(!clazzList || !clazzList.length) {
+            return;
         }
-    }
 
-    start(args: http.WebAppArgs) {
         const container = this.container;
+        this.app.route(async router => {
+                for (const clazz of clazzList) {
+                    const target = await container.get(clazz);
 
-        const app = http.webapp(args);
-
-        app.route(async router => {
-            if(this.routeFuncList && this.routeFuncList.length) {
-                for(let index = 0; index < this.routeFuncList.length; index++) {
-                    const func = this.routeFuncList[index];
-                    func(router);
-                }
-            }
-
-            if(this.routeClazzList && this.routeClazzList.length) {
-                for (const clazz of this.routeClazzList) {
                     const mappings = Reflect.getMetadata($_HTTP, clazz);
                     for (const path in mappings) {
                         const mapping = mappings[path];
@@ -68,14 +64,15 @@ export class HttpService {
                             continue;
                         }
                         const {method, handler} = mapping;
-                        const target = await container.get(clazz);
                         router[method](path, http.handler(target[handler].bind(target)));
-                        console.log(`http service '${args.name}' setup route [${method.toUpperCase()}] ${path}`);
+                        console.log(`http service '${this.args.name}' setup route [${method.toUpperCase()}] ${path}`);
                     }
                 }
-            }
-        });
 
-        app.start();
+        });
+    }
+
+    start() {
+        this.app.start();
     }
 }

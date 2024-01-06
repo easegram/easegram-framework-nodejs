@@ -14,8 +14,14 @@ export class Serv {
     public start() {
         const args = this.config['http'];
 
+        this.http.create(args);
+
+        this.http.use((ctx, next)=>{
+            return next();
+        });
+
         // Setup routes by functions
-        this.http.setRouteFunc((router)=>{
+        this.http.routesWithFunc((router)=>{
             router.all("/", async(ctx, next)=>{
                 ctx.body = 'Hello World.';
             });
@@ -23,8 +29,8 @@ export class Serv {
 
         // Setup routes by clazz
         const routes = [Hello];
-        this.http.setRouteClazz(...routes);
+        this.http.routesWithClazz(...routes);
 
-        this.http.start(args);
+        this.http.start();
     }
 }
