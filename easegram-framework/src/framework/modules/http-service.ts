@@ -31,26 +31,47 @@ export class HttpService {
     @IocInject()
     private container: IoC.Container;
 
-    start(args: http.WebAppArgs, routes: Constructor[]) {
+    private routeFuncList: Array<(router)=>void> = [];
+    private routeClazzList: Array<Constructor> = [];
+
+    public setRouteFunc(func: (router)=>void) {
+        this.routeFuncList.push(func);
+    }
+
+    public setRouteClazz(...clazzList: Constructor[]) {
+        if(clazzList && clazzList.length > 0) {
+            for(const c of clazzList) {
+                this.routeClazzList.push(c);
+            }
+        }
+    }
+
+    start(args: http.WebAppArgs) {
         const container = this.container;
 
         const app = http.webapp(args);
 
         app.route(async router => {
-            if(!routes || !routes.length) {
-                return;
+            if(this.routeFuncList && this.routeFuncList.length) {
+                for(let index = 0; index < this.routeFuncList.length; index++) {
+                    const func = this.routeFuncList[index];
+                    func(router);
+                }
             }
-            for(const clazz of routes) {
-                const mappings = Reflect.getMetadata($_HTTP, clazz);
-                for (const path in mappings) {
-                    const mapping = mappings[path];
-                    if (!mapping) {
-                        continue;
+
+            if(this.routeClazzList && this.routeClazzList.length) {
+                for (const clazz of this.routeClazzList) {
+                    const mappings = Reflect.getMetadata($_HTTP, clazz);
+                    for (const path in mappings) {
+                        const mapping = mappings[path];
+                        if (!mapping) {
+                            continue;
+                        }
+                        const {method, handler} = mapping;
+                        const target = await container.get(clazz);
+                        router[method](path, http.handler(target[handler].bind(target)));
+                        console.log(`http service '${args.name}' setup route [${method.toUpperCase()}] ${path}`);
                     }
-                    const {method, handler} = mapping;
-                    const target = await container.get(clazz);
-                    router[method](path, http.handler(target[handler].bind(target)));
-                    console.log(`http service '${args.name}' setup route [${method.toUpperCase()}] ${path}`);
                 }
             }
         });

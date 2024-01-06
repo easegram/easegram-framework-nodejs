@@ -11,7 +11,7 @@
     "dev": "npm run build && cross-env NODE_ENV=dev node --experimental-specifier-resolution=node dist/app.js"
   },
   "dependencies": {
-    "@easegram/framework": "^0.0.54"
+    "@easegram/framework": "^0.0.58"
   },
   "devDependencies": {
     "@types/node": "^20.10.2",
