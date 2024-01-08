@@ -151,6 +151,16 @@ export const webapp = function (args: WebAppArgs): WebApp {
         console['meta'] = null;
     });
 
+    app.use(async (ctx, next) => {
+        try {
+            await next();
+        }
+        catch (err) {
+            ctx.body = packet.make(err, null);
+            ctx.app.emit('error', err, ctx);
+        }
+    });
+
     if (args.proxy) {
         app.proxy = true;
     }

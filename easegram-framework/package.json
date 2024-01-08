@@ -1,6 +1,6 @@
 {
   "name": "@easegram/framework",
-  "version": "0.0.61",
+  "version": "0.0.62",
   "description": "The nodejs implementation for easegram framework.",
   "type": "commonjs",
   "main": "dist/index.js",
