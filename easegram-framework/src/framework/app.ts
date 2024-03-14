@@ -81,7 +81,6 @@ export class App {
             if (!info || !info.clazz) {
                 continue;
             }
-            console.log(`App: define object ${id}: ${info.clazz.name}`);
             this.container.define(id, info.clazz, info.args || [])
         }
 
@@ -90,7 +89,6 @@ export class App {
             if (!path) {
                 continue;
             }
-            console.log(`App: Load modules from '${path}'`);
             await this.container.load(`${process.cwd()}/${path}`);
         }
 

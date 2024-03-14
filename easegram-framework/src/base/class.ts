@@ -11,18 +11,28 @@ export namespace Class {
         const fileList = fs.readdirSync(home);
 
         const classList: Array<Constructor> = [];
-        for (const file of fileList) {
-            if (!(/\.js$/.test(file))) {
-                continue;
-            }
-            if(file === 'app.js') {
-                continue;
-            }
+        for (const fileName of fileList) {
+            const filePath = `${home}${fileName}`;
+            const fileStat = fs.statSync(filePath);
 
-            const exports = await import(`${home}${file}`);
-            for (const key in exports) {
-                const clazz = exports[key];
-                if (typeof clazz === 'function') {
+            if(fileStat.isFile()) {
+                if (!(/\.js$/.test(fileName))) {
+                    continue;
+                }
+                if(fileName === 'app.js') {
+                    continue;
+                }
+                const exports = await import(filePath);
+                for (const key in exports) {
+                    const clazz = exports[key];
+                    if (typeof clazz === 'function') {
+                        classList.push(clazz);
+                    }
+                }
+            }
+            else if(fileStat.isDirectory()) {
+                const subClassList = await scan(`${filePath}/`);
+                for(const clazz of subClassList) {
                     classList.push(clazz);
                 }
             }

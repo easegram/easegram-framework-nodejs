@@ -1,4 +1,4 @@
-import { MongoClient, MongoClientOptions, Db } from 'mongodb';
+import {MongoClient, MongoClientOptions, Db, Document, WithId} from 'mongodb';
 import { error } from './common';
 
 export * from 'mongodb';
@@ -15,9 +15,7 @@ export interface MongoOptions extends MongoClientOptions {
 }
 
 export class Mongo {
-
     private _options: MongoOptions;
-
     private _client: MongoClient;
 
     constructor(options: MongoOptions) {
@@ -28,50 +26,6 @@ export class Mongo {
             throw error('ERR_MONGODB_DATABASE', 'Mongodb database must be set.');
         }
         this._options = options;
-    }
-
-    /**
-     * MongoDB查询方法
-     * @param condition 查询语句方法
-     */
-    public async query(condition: (db: Db) => Promise<any>): Promise<any> {
-        const { _client, _options } = this;
-        if (!_client || !_options) {
-            throw error('ERR_MONGODB_INIT', 'Mongodb is not init.')
-        }
-        if (!condition) { return; }
-        const db = _client.db(_options.database);
-        return condition(db);
-    }
-
-    /**
-     * 连接MongoDB
-     */
-    public async connect() : Promise<Mongo> {
-        if (this._client) {
-            return this;
-        }
-
-        const { uri, database, ...options } = this._options;
-        this._client = new MongoClient(uri, options);
-    
-        try {
-            await this._client.connect();
-        } catch (err: any) {
-            throw error('ERR_MONGODB_CONNECTION', err.message);
-        }
-        
-        return this;
-    }
-
-    /**
-     * 关闭MongoDB连接
-     * @param force
-     */
-    public async close(force?: boolean): Promise<void> {
-        if (!this._client) { return; }
-        if (!this.isConnected) { return; }
-        return this._client.close(force);
     }
 
     /**
@@ -94,4 +48,68 @@ export class Mongo {
     public get isConnected() {
         return !!this._client;
     }
+
+    /**
+     * 连接MongoDB
+     */
+    public async connect() : Promise<void> {
+        if (this._client) {
+            return;
+        }
+
+        const { uri, database, ...options } = this.options;
+        try {
+            this._client = new MongoClient(uri, options);
+            await this._client.connect();
+        } catch (err: any) {
+            this._client = null;
+            throw error('ERR_MONGODB_CONNECTION', err.message);
+        }
+    }
+
+    /**
+     * 关闭MongoDB连接
+     * @param force
+     */
+    public async close(force?: boolean): Promise<void> {
+        if (!this.client) { return; }
+        return this.client.close(force);
+    }
+
+    /**
+     * MongoDB查询方法
+     * @param condition 查询语句方法
+     */
+    public async query<T>(condition: (db: Db) => Promise<T>): Promise<T> {
+        const { client, options } = this;
+        if (!client || !options) {
+            throw error('ERR_MONGODB_INIT', 'Mongodb is not init.')
+        }
+        if (!condition) { return; }
+        const db = client.db(options.database);
+        return condition(db);
+    }
+}
+
+export function toObject<T>(doc: WithId<Document>) : T {
+    const obj : Partial<T> = {};
+
+    for(const key in doc) {
+        if(doc.hasOwnProperty(key)) {
+            obj[key as keyof T] = doc[key] as any as T[keyof T];
+        }
+    }
+
+    return obj as T;
+}
+
+export function toArray<T>(docs: WithId<Document>[]) : T[] {
+    const list = new Array<T>();
+
+    for(const doc of docs) {
+        const obj = toObject<T>(doc);
+        list.push(obj);
+    }
+
+    return list;
 }

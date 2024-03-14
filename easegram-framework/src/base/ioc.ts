@@ -56,7 +56,7 @@ export namespace IoC {
          * Load @ModuleInst metadata from the directory indicated by home.
          * */
         public async load(home: string) {
-            console.log(`IoC: Load modules from '${home}'`);
+            console.log(`IoC: Load objects from '${home}'`);
             const classList = await Class.scan(home);
             for(const clazz of classList) {
                 const metadata = Reflect.getMetadata($_IocDefine, clazz);

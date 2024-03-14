@@ -6,12 +6,12 @@
   "scripts": {
     "start": "npm run dev",
     "build": "rimraf ./dist && tsc -p ./tsconfig.json",
-    "prod": "npm run build && cross-env NODE_ENV=prod node --experimental-specifier-resolution=node dist/app.js",
-    "stage": "npm run build && cross-env NODE_ENV=stage node --experimental-specifier-resolution=node dist/app.js",
-    "dev": "npm run build && cross-env NODE_ENV=dev node --experimental-specifier-resolution=node dist/app.js"
+    "prod": "npm run build && cross-env NODE_ENV=prod node dist/app.js",
+    "stage": "npm run build && cross-env NODE_ENV=stage node dist/app.js",
+    "dev": "npm run build && cross-env NODE_ENV=dev node dist/app.js"
   },
   "dependencies": {
-    "@easegram/framework": "^0.0.59"
+    "@easegram/framework": "^0.0.67"
   },
   "devDependencies": {
     "@types/node": "^20.10.2",
